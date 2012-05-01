@@ -25,7 +25,7 @@ def long_description():
         return LONG_DESCRIPTION
 
 
-setup(name='django-social-auth',
+setup(name='django-social-auth-compat11',
       version=version,
       author='Matías Aguirre',
       author_email='matiasaguirre@gmail.com',
@@ -38,8 +38,7 @@ setup(name='django-social-auth',
                 'social_auth.backends.contrib',
                 'social_auth.backends.pipeline'],
       long_description=long_description(),
-      install_requires=['django>=1.1',
-                        'oauth2>=1.5.167',
+      install_requires=['oauth2>=1.5.167',
                         'python_openid>=2.2'],
       classifiers=['Framework :: Django',
                    'Development Status :: 4 - Beta',
