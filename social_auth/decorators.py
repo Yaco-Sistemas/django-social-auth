@@ -2,7 +2,10 @@ from functools import wraps
 
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, HttpResponseServerError
-from django.utils.importlib import import_module
+try:
+    from django.utils.importlib import import_module
+except ImportError:  # django 1.1 compatibility
+    from social_auth.compat import import_module
 
 from social_auth.backends import get_backend
 from social_auth.utils import setting, log, backend_setting

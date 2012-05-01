@@ -5,11 +5,24 @@ Notes:
       on third party providers that (if using POST) won't be sending csrf
       token back.
 """
+from functools import wraps
+
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth import login, REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.views.decorators.csrf import csrf_exempt
+try:
+    from django.contrib import messages
+except ImportError:
+    messages = None
+
+try:
+    from django.views.decorators.csrf import csrf_exempt
+except ImportError:
+    def csrf_exempt(view_func):
+        def wrapped_view(*args, **kwargs):
+            return view_func(*args, **kwargs)
+        return wraps(view_func)(wrapped_view)
+
 
 from social_auth.utils import sanitize_redirect, setting, \
                               backend_setting, clean_partial_pipeline
@@ -139,7 +152,7 @@ def complete_process(request, backend, *args, **kwargs):
                                   LOGIN_ERROR_URL)
     else:
         msg = setting('LOGIN_ERROR_MESSAGE', None)
-        if msg:
+        if msg and messages:
             messages.error(request, msg)
         url = backend_setting(backend, 'LOGIN_ERROR_URL', LOGIN_ERROR_URL)
     return HttpResponseRedirect(url)

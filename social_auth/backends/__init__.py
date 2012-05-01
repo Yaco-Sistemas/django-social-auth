@@ -24,7 +24,11 @@ from django.db import models
 from django.contrib.auth import authenticate
 from django.contrib.auth.backends import ModelBackend
 from django.utils import simplejson
-from django.utils.importlib import import_module
+try:
+    from django.utils.importlib import import_module
+except ImportError:  # django 1.1 compatibility
+    from social_auth.compat import import_module
+
 
 from social_auth.utils import setting, log, model_to_ctype, ctype_to_model, \
                               clean_partial_pipeline
