@@ -12,7 +12,7 @@ from social_auth.signals import socialauth_not_registered, \
 def simple_user_exists(*args, **kwargs):
     """Return True/False if a User instance exists with the given arguments.
     Arguments are directly passed to filter() manager method."""
-    return User.objects.filter(*args, **kwargs).exists()
+    return User.objects.filter(*args, **kwargs).count() != 0
 
 
 def get_username(details, user=None, user_exists=simple_user_exists,

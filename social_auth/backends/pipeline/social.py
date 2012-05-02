@@ -1,4 +1,7 @@
-from django.db.utils import IntegrityError
+try:
+    from django.db.utils import IntegrityError
+except ImportError:
+    from django.db import IntegrityError
 
 from social_auth.utils import setting
 from social_auth.models import UserSocialAuth
