@@ -16,6 +16,7 @@ def social_auth_user(backend, uid, user=None, *args, **kwargs):
     Raise AuthException if UserSocialAuth entry belongs to another user.
     """
     try:
+        uid = str(uid)  # Django 1.1 compatibility
         social_user = UserSocialAuth.objects.select_related('user')\
                                             .get(provider=backend.name,
                                                  uid=uid)

@@ -42,6 +42,9 @@ class JSONField(models.TextField):
         except Exception, e:
             raise ValidationError(str(e))
 
+    def get_db_prep_value(self, value, *args, **kwargs):
+        self.get_prep_value(value)  # Django 1.1 compatibility
+
     def value_to_string(self, obj):
         """Return value from object converted to string properly"""
         return smart_unicode(self.get_prep_value(self._get_val_from_obj(obj)))
