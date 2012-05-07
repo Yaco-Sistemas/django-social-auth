@@ -10,6 +10,7 @@ from functools import wraps
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth import login, REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import login_required
+from django.utils.translation import ugettext_lazy as _
 try:
     from django.contrib import messages
 except ImportError:
@@ -28,10 +29,22 @@ from social_auth.utils import sanitize_redirect, setting, \
                               backend_setting, clean_partial_pipeline
 from social_auth.decorators import dsa_view
 
+from cmsutils.log import send_error, send_info
+
 
 DEFAULT_REDIRECT = setting('SOCIAL_AUTH_LOGIN_REDIRECT_URL') or \
                    setting('LOGIN_REDIRECT_URL')
 LOGIN_ERROR_URL = setting('LOGIN_ERROR_URL', setting('LOGIN_URL'))
+
+
+def  _get_redirect_to(request):
+    """URL REDIRECT to came back to previus url before login"""
+    redirect_to = request.META.get('HTTP_REFERER', '')
+    if setting('SOCIAL_AUTH_REDIRECT_QUERY') and redirect_to.find(setting('SOCIAL_AUTH_REDIRECT_QUERY')) > 0:
+        redirect_to = redirect_to[redirect_to.find(setting('SOCIAL_AUTH_REDIRECT_QUERY')) + len(setting('SOCIAL_AUTH_REDIRECT_QUERY')):]
+    else:
+        redirect_to = DEFAULT_REDIRECT
+    return redirect_to
 
 
 @dsa_view(setting('SOCIAL_AUTH_COMPLETE_URL_NAME', 'socialauth_complete'))
@@ -63,10 +76,7 @@ def associate_complete(request, backend, *args, **kwargs):
     elif isinstance(user, HttpResponse):
         return user
     else:
-        url = backend_setting(backend,
-                              'SOCIAL_AUTH_NEW_ASSOCIATION_REDIRECT_URL') or \
-              redirect_value or \
-              DEFAULT_REDIRECT
+        url = _get_redirect_to(request)
     return HttpResponseRedirect(url)
 
 
@@ -141,12 +151,11 @@ def complete_process(request, backend, *args, **kwargs):
             new_user_redirect = backend_setting(backend,
                                            'SOCIAL_AUTH_NEW_USER_REDIRECT_URL')
             if new_user_redirect and getattr(user, 'is_new', False):
-                url = new_user_redirect
+                url = _get_redirect_to(request)
+                send_info(request, _('You are new member logged in'))
             else:
-                url = redirect_value or \
-                      backend_setting(backend,
-                                      'SOCIAL_AUTH_LOGIN_REDIRECT_URL') or \
-                      DEFAULT_REDIRECT
+                url = _get_redirect_to(request)
+                send_info(request, _('You are logged in'))
         else:
             url = backend_setting(backend, 'SOCIAL_AUTH_INACTIVE_USER_URL',
                                   LOGIN_ERROR_URL)
@@ -154,6 +163,8 @@ def complete_process(request, backend, *args, **kwargs):
         msg = setting('LOGIN_ERROR_MESSAGE', None)
         if msg and messages:
             messages.error(request, msg)
+        else:
+            send_error(request, _('Credentials are incorrect'))
         url = backend_setting(backend, 'LOGIN_ERROR_URL', LOGIN_ERROR_URL)
     return HttpResponseRedirect(url)
 
