@@ -67,8 +67,6 @@ def complete(request, backend, *args, **kwargs):
 @login_required
 def associate_complete(request, backend, *args, **kwargs):
     """Authentication complete process"""
-    # pop redirect value before the session is trashed on login()
-    redirect_value = request.session.get(REDIRECT_FIELD_NAME, '')
     user = auth_complete(request, backend, request.user, *args, **kwargs)
 
     if not user:
@@ -152,10 +150,10 @@ def complete_process(request, backend, *args, **kwargs):
                                            'SOCIAL_AUTH_NEW_USER_REDIRECT_URL')
             if new_user_redirect and getattr(user, 'is_new', False):
                 url = _get_redirect_to(request)
-                send_info(request, _('You are new member logged in'))
+                send_info(request, _('Welcome %s') % user)
             else:
                 url = _get_redirect_to(request)
-                send_info(request, _('You are logged in'))
+                send_info(request, _('Welcome %s') % user)
         else:
             url = backend_setting(backend, 'SOCIAL_AUTH_INACTIVE_USER_URL',
                                   LOGIN_ERROR_URL)
